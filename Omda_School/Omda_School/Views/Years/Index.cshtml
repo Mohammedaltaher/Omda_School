@@ -1,0 +1,317 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.Years;
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.Years
+    </h1>
+   
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+                <h3 class="box-title">
+                    <button type="button" onclick="showYears()" data-toggle="modal" data-target="#modal-Years" class="btn btn-primary">@resx.Add  @resx.Year</button>
+                </h3>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblYears" class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+                        <tr>
+                            <th>@resx.Name @resx.theYear</th>
+                            <th> @resx.theYear @resx.current</th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="bodyYears"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model  -->
+<div class="modal fade" id="modal-Years">
+    <div class="modal-dialog">
+        <label hidden id="lblYearsId"></label>
+        <label hidden id="IsCurrent"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titleYears" class="modal-title">@resx.Add @resx.Years</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>@resx.Name <span id="reName" style="color:red"> * </span></label>
+                        <input type="text" required id="Name" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <br />
+                        @resx.theYear   @resx.current  <input type="checkbox" required id="chkIsCurrent">
+                    </div>
+
+
+                    <div class="row">
+
+                        @*<div class="col-md-12">
+                            <label>@resx.Role  <span style="color:red">*</span></label>
+
+                        </div>*@
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                        <button type="button" id="btnSave" onclick="SaveYears()" class="btn btn-primary pull-left">@resx.Save</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+</div>
+<!-- End Model  -->
+<script>
+    $(document).ready(
+        function bind() {
+             console.log("it's defined")
+            setTableProp("#tblYears");
+            $(".prog").fadeOut(500);
+          GetYearsList();
+        }
+    );
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+    }
+    $("#chkIsCurrent").change(function() {
+    if(this.checked) {
+        document.getElementById('IsCurrent').value = "Y";
+    } else {
+        document.getElementById('IsCurrent').value = "N";
+       
+    }
+});
+    var CurrentYearsList = null;
+    function GetYearsList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Years/GetYearsList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentYearsList = data;
+                    var row = "";
+                    for (var i = 0; i < CurrentYearsList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentYearsList[i].Name + "</td>" +
+                            "<td>" + CurrentYearsList[i].IsCurrent + "</td>" +
+                            //"<td>" + CurrentYearsList[i].YearsRoleId + "</td>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn btn-primary pull-right' data-toggle='modal' data-target='#modal-Years'  onclick='EditYears(" + CurrentYearsList[i].Id + ")'>@resx.Edit</button>" +
+                            "<button class='btn btn-danger pull-left'  onclick='Delete(" + CurrentYearsList[i].Id +
+                            ")'>@resx.Delete</button>" +
+                            "</td>" +
+                            "</tr>";
+                    }
+                    $("#bodyYears").html(row);
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+    function SaveYears() {
+        if (!checkValidtion_btnAddYears()) return;
+        if (document.getElementById('titleYears').innerHTML != "@resx.Add @resx.Years") {
+            $.ajax({
+                url: "~/../Years/EditYears",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblYearsId').value,
+                    Name: document.getElementById('Name').value ,
+                    IsCurrent: document.getElementById('IsCurrent').value ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Years').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "~/../Years/AddYears",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Name: document.getElementById('Name').value ,
+                    IsCurrent: document.getElementById('IsCurrent').value
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Years').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearYears();
+    }
+    var year;
+    function EditYears(ID) {
+        document.getElementById('titleYears').innerHTML = "@resx.Edit @resx.Years";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblYearsId').value = ID;
+        $.ajax({
+            url: "~/../Years/BindYears",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                  document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    year = data;
+                    document.getElementById('Name').value = year[0].Name;
+                     document.getElementById('IsCurrent').value = year[0].IsCurrent;
+                    if (year[0].IsCurrent == "Y") {
+                        $("#chkIsCurrent").prop("checked", true);
+                    } else {
+                          $("#chkIsCurrent").prop("checked", false);
+                    }
+
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeleteYears() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Years/DeleteYears",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblYearsId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showYears() {
+        console.log("it's defined")
+        document.getElementById('titleYears').innerHTML = "@resx.Add @resx.Years";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearYears() {
+        //location.reload();
+       document.getElementById('Name').value = "";
+    }
+    function checkValidtion_btnAddYears() {
+        var isVaild = true;
+        if (!$('#Name')[0].checkValidity()) {
+            document.getElementById('reName').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reName').innerHTML = "*";
+        }
+
+        return isVaild;
+    }
+    function OKR() {
+        GetYearsList();
+        clearYears();
+       // top.location.href = "~/../Years";
+    }
+    function ConfirmDelete() {
+        DeleteYears();
+    }
+    function Delete(Id) {
+         document.getElementById('lblYearsId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+</script>

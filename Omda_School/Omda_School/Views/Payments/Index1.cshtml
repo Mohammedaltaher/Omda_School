@@ -1,0 +1,306 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.Payments;
+    ViewBag.Title = "Monitoring Traffic";// Session["PaymentsName"];
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.Payments
+        <small>@resx.Payments</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> @resx.Manage @resx.Payments</a></li>
+        <li class="active">@resx.Payments</li>
+    </ol>
+
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+                <h3 class="box-title">
+                    <button type="button" onclick="showPayments()" data-toggle="modal" data-target="#modal-Payments" class="btn btn-primary">@resx.Add  @resx.Payment</button>
+                </h3>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblPayments" class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+
+                        <tr>
+                            <th>@resx.Date @resx.thePayment</th>
+                            <th>@resx.Amount @resx.thePayment</th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="bodyPayments"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model  -->
+<div class="modal fade" id="modal-Payments">
+    <div class="modal-dialog">
+        <label hidden id="lblPaymentsId"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titlePayments" class="modal-title">@resx.Add @resx.Payments</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Amount <span id="reAmount" style="color:red"> * </span></label>
+                        <input type="text" required id="Amount" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Date <span id="reDate" style="color:red"> * </span></label>
+                        <input type="text" required id="PaymentDate" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModel()" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                    <button type="button" id="btnSave" onclick="SavePayments()" class="btn btn-primary pull-left">@resx.Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+</div>
+<!-- End Model  -->
+<script>
+    $(document).ready(
+        function bind() {
+             console.log("it's defined")
+            setTableProp("#tblPayments");
+            $(".prog").fadeOut(500);
+          GetPaymentsList();
+        }
+    );
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+    }
+    var CurrentPaymentsList = null;
+    function GetPaymentsList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "/Payments/GetPaymentsList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentPaymentsList = data;
+                    var row = "";
+                    for (var i = 0; i < CurrentPaymentsList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentPaymentsList[i].Amount + "</td>" +
+                            "<td>" + CurrentPaymentsList[i].PaymentDate + "</td>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn btn-primary pull-right' data-toggle='modal' data-target='#modal-Payments'  onclick='EditPayments(" + CurrentPaymentsList[i].Id + ")'>@resx.Edit</button>" +
+                            "<button class='btn btn-danger pull-left'  onclick='Delete(" + CurrentPaymentsList[i].Id +
+                            ")'>@resx.Delete</button>" +
+                            "</td>" +
+                            "</tr>";
+                    }
+                    $("#bodyPayments").html(row);
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+    function SavePayments() {
+        if (!checkValidtion_btnAddPayments()) return;
+        if (document.getElementById('titlePayments').innerHTML != "@resx.Add @resx.Payments") {
+            $.ajax({
+                url: "/Payments/EditPayments",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblPaymentsId').value,
+                    Amount: document.getElementById('Amount').value,
+                    PaymentDate: document.getElementById('PaymentDate').value ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Payments').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "/Payments/AddPayments",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Amount: document.getElementById('Amount').value,
+                    PaymentDate: document.getElementById('PaymentDate').value
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Payments').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearPayments();
+    }
+    var Payment;
+    function EditPayments(ID) {
+        document.getElementById('titlePayments').innerHTML = "@resx.Edit @resx.Payments";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblPaymentsId').value = ID;
+        $.ajax({
+            url: "/Payments/BindPayments",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                  document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    Payment = data;
+                    document.getElementById('Amount').value = Payment[0].Amount;
+                    document.getElementById('PaymentDate').value = Payment[0].PaymentDate;
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeletePayments() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "/Payments/DeletePayments",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblPaymentsId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showPayments() {
+        console.log("it's defined")
+        document.getElementById('titlePayments').innerHTML = "@resx.Add @resx.Payments";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearPayments() {
+        //location.reload();
+       document.getElementById('Name').value = "";
+       document.getElementById('ddlDepartmentID').value = "";
+    }
+    function checkValidtion_btnAddPayments() {
+        var isVaild = true;
+        if (!$('#Name')[0].checkValidity()) {
+            document.getElementById('reName').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reName').innerHTML = "*";
+        }
+
+        return isVaild;
+    }
+    function OKR() {
+        GetPaymentsList();
+        clearPayments();
+       // top.location.href = "/Payments";
+    }
+    function closeModel() {
+          clearPayments();
+    }
+    function ConfirmDelete() {
+        DeletePayments();
+    }
+
+    function Delete(Id) {
+         document.getElementById('lblPaymentsId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+</script>

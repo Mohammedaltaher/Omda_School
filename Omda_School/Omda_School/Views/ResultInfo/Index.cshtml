@@ -1,0 +1,232 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.theResults;
+    var ResultID = ViewBag.ResultID;
+    var Subjects = ViewBag.ddlSubject;
+
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        <span id="ResultHeader"></span>
+    </h1>
+
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+                <h3 class="box-title">
+                    <button type="button" id="ExpordToPdf" class="btn btn-primary">@resx.Print  @resx.theResult Excel</button>
+                </h3>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblDegrees"   class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+                        @{ var totalDegree = 0; }
+                        <tr>
+                            <th>@resx.Name @resx.theStudent</th>
+                            @{
+                                foreach (var item in Subjects)
+                                {
+                                    <th>@item.Name ( @item.ExamDegree )</th>
+                                    totalDegree += (int)item.ExamDegree;
+
+                                }
+                            }
+                            <th>@resx.theTotal (<span id="totalDegree">@totalDegree</span>)</th>
+                            <th>@resx.thePercent </th>
+                            <th>@resx.theMajar </th>
+
+
+                        </tr>
+                    </thead>
+                    <tbody id="bodyDegrees"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+
+<script src="~/Scripts/DataTables/tableExport/jquery.base64.js"></script>
+<script src="~/Scripts/DataTables/tableExport/tableExport.js"></script>
+<script src="~/Scripts/DataTables/tableExport/html2canvas.js"></script>
+<script src="~/Scripts/DataTables/tableExport/jspdf/jspdf.js"></script>
+<script src="~/Scripts/DataTables/tableExport/jspdf/libs/base64.js"></script>
+<script src="~/Scripts/DataTables/tableExport/jspdf/libs/sprintf.js"></script>
+
+<script>
+    $(document).ready(
+        function bind() {
+            $(".prog").fadeOut(500);
+            GetDegreesList();
+
+            ResultName = @Html.Raw(Json.Encode(@ViewBag.ddlResult));
+            var space = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+            var f = "<b>@resx.theDepartment : </b>" + ResultName[0].deptName + space+ space;
+                f += "<b>@resx.theLevel : </b>" + ResultName[0].levelName+ space+ space;
+                f += "<b> @resx.theResult : </b>" + ResultName[0].Type+ space+ space;
+                f += "<b>@resx.theYear : </b>" + ResultName[0].yearName;
+            document.getElementById('ResultHeader').innerHTML = f;
+
+            $("#ExpordToPdf").bind('click', function (e) {
+                fnExcelReport();
+            @*$('#tblDegrees').tableExport({
+                type: 'doc', escape: 'false', htmlContent: 'true',
+                tableName: ' @resx.theResult'
+            });*@
+             });
+
+        } );
+    var timer
+
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+
+
+ }
+
+    var CurrentDegreesList = null;
+    var SubjectName = null;
+    var StudentName = null;
+     ///var SubjectName;
+    function GetDegreesList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../ResultInfo/GetDegreesList?id=@ResultID",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentDegreesList = data;
+                     SubjectName = @Html.Raw(Json.Encode(@ViewBag.ddlSubject));
+                     StudentName = @Html.Raw(Json.Encode(@ViewBag.ddlStudent));
+                    //for (var i = 0; i < array.length; i++) {
+                    //    console.log(array[i].Id);
+                    //    SubjectName[i].Id = array[i].Id;
+                    //}
+                    var row = "";
+                    var FullDegree = 0;
+                    for (var i = 0; i < StudentName.length; i++) {
+                         var FullDegree = 0;
+                        row += "<tr>" + "<td>" + StudentName[i].Name + "</td>";
+                        for (var j =0; j < SubjectName.length; j++) {
+                            for (var k = 0; k < CurrentDegreesList.length; k++) {
+
+                                if (CurrentDegreesList[k].SubjectID == SubjectName[j].Id) {
+
+                                    if (CurrentDegreesList[k].StudentID == StudentName[i].Id) {
+                                       row += "<td>" + CurrentDegreesList[k].StudentDegree + "</td>";
+                                        FullDegree += CurrentDegreesList[k].StudentDegree;
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                        row += "<td>" + FullDegree + "</td>";
+                        var totalDegree =Number( document.getElementById('totalDegree').innerHTML);
+
+                        var fd = Number(FullDegree);
+                         //console.log(totalDegree);
+                        var per = (fd / totalDegree) * 100;
+                        row += "<td> %" + Number(Math.round(per+'e2')+'e-2');  + "</td>";
+                        var mojar = "";
+                        row += "<td>" + fnMajar(per) + "</td>";
+
+                        row += "</tr>";
+
+                    }
+                    $("#bodyDegrees").html(row);
+                    $('#tblDegrees').DataTable({
+                         'paging': false,
+                        'lengthChange': false,
+                        'searching': false,
+                        'info': false,
+                        'autoWidth': false,
+                        "order": [[4, "desc"]]
+                    });
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+    function fnMajar(per) {
+        if (per >= 50 && per < 60) {
+            return "@resx.pass";
+        }
+        if (per >= 60 && per < 70) {
+            return "@resx.good";
+        }
+        if (per >= 70 && per < 80) {
+            return "@resx.vgood";
+        }
+        if (per >= 80 && per <= 100) {
+            return "@resx.excelant";
+        }
+        if (per < 50 ) {
+            return "@resx.fall";
+        }
+    }
+
+    function fnExcelReport()
+    {
+
+    var tab_text="<table   border='2px'><tr bgcolor='#87AFC6'>";
+    var textRange; var j=0;
+    tab = document.getElementById('tblDegrees'); // id of table
+
+    for(j = 0 ; j < tab.rows.length ; j++) 
+    {     
+        tab_text=tab_text+tab.rows[j].innerHTML+"</tr>";
+        //tab_text=tab_text+"</tr>";
+    }
+
+    tab_text=tab_text+"</table>";
+    tab_text= tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+    tab_text= tab_text.replace(/<img[^>]*>/gi,""); // remove if u want images in your table
+    tab_text= tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE "); 
+
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+    {
+        txtArea1.document.open("txt/html","replace");
+        txtArea1.document.write(tab_text);
+        txtArea1.document.close();
+        txtArea1.focus(); 
+        sa=txtArea1.document.execCommand("SaveAs",true,"Say Thanks to Sumit.xls");
+    }  
+    else                 //other browser not tested on IE 11
+        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));  
+
+    return (sa);
+    }
+
+</script>

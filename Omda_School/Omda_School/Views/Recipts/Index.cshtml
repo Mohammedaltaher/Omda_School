@@ -1,0 +1,66 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.Years;
+    ViewBag.Title = "Monitoring Traffic";// Session["YearsName"];
+}
+
+
+<div class="box box-body box-primary">
+    <div style="direction:rtl">
+        <input class="form-control Button btn-primary" style=" width:20%" type="button" value="Export to word" id="ExportToWord" />
+    </div>
+    <table class="table table-striped table-bordered" id="dtaTable">
+       <tr>
+           <td>
+               <img src="../../Content/ProImage/omda5.png" class="ImagePreviewBox" alt="User Image">
+           </td>
+       </tr> 
+    </table>
+
+</div>
+<script src="~/Scripts/DataTables/tableExport/jquery.base64.js"></script>
+<script src="~/Scripts/DataTables/tableExport/tableExport.js"></script>
+<script src="~/Scripts/DataTables/tableExport/html2canvas.js"></script>
+<script src="~/Scripts/DataTables/tableExport/jspdf/jspdf.js"></script>
+<script src="~/Scripts/DataTables/tableExport/jspdf/libs/base64.js"></script>
+<script src="~/Scripts/DataTables/tableExport/jspdf/libs/sprintf.js"></script>
+
+
+<script>
+
+    $(document).ready(function () {
+        $("#ExportToWord").bind('click', function (e) {
+            $('#dtaTable').tableExport({
+                type: 'csv', escape: 'false',
+                tableName: 'DS'
+            });
+        });
+
+
+        //var tableTools = new $.fn.dataTable.TableTools(table, {
+        //    'aButtons': [
+        //        {
+        //            'sExtends': 'xls',
+        //            'sButtonText': 'Save to Excel',
+        //            'sFileName': 'DailySales.xls'
+        //        },
+        //        {
+        //            'sExtends': 'print',
+        //            'bShowAll': true,
+        //        },
+        //        {
+        //            'sExtends': 'pdf',
+        //            'bFooter': true,
+        //            'bShowAll': true,
+        //            'sPdfMessage': 'Your custom message would go here.'
+        //        },
+        //        'copy'
+        //    ],
+        //    'sSwfPath': 'http://cdn.datatables.net/tabletools/2.2.4/swf/copy_csv_xls_pdf.swf'
+        //});
+
+        //$(tableTools.fnContainer()).insertBefore('#datatable_wrapper');
+
+    });
+
+</script>

@@ -1,0 +1,426 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.theSubjects;
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.theSubjects
+    </h1>
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <h3 class="box-title">
+                            <button type="button" onclick="showSubjects()" data-toggle="modal" data-target="#modal-Subjects" class="btn btn-primary">@resx.Add  @resx.Subject</button>
+                        </h3>
+                    </div>
+                    <div class="col-md-4">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlDepartmentID" })
+                    </div>
+                    <div class="col-md-4">
+                        <label>@resx.theLevels  <span style="color:red">*</span></label>
+                        <select id="Search_ddlLevelID" class="form-control"></select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-1">
+        </div>
+        <div class="box-body col-md-10">
+            <table id="tblSubjects" class="table table-bordered table-hover ">
+                <thead style="background-color: #3c8dbc">
+
+                    <tr>
+                        <th>@resx.Name @resx.theSubject</th>
+                        <th>@resx.Degree @resx.theExam</th>
+                        <th>@resx.Name @resx.theLevel</th>
+                        <th>@resx.Name @resx.theDepartment</th>
+                        <th></th>
+
+                    </tr>
+                </thead>
+                <tbody id="bodySubjects"></tbody>
+            </table>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model  -->
+<div class="modal fade" id="modal-Subjects">
+    <div class="modal-dialog">
+        <label hidden id="lblSubjectsId"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titleSubjects" class="modal-title">@resx.Add @resx.Subject</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Name <span id="reName" style="color:red"> * </span></label>
+                        <input type="text" required id="Name" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Degree @resx.theExam<span id="reExamDegree" style="color:red"> * </span></label>
+                        <input type="text" required id="ExamDegree" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "ddlDepartmentID" })
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Level  <span style="color:red">*</span></label>
+                        <select id="ddlLevelID" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModel()" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                    <button type="button" id="btnSave" onclick="SaveSubjects()" class="btn btn-primary pull-left">@resx.Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+</div>
+<!-- End Model  -->
+<script>
+    $(document).ready(
+        function bind() {
+             PopulateLevel();
+             Search_PopulateLevel();
+             console.log("it's defined")
+             //setTableProp("#tblSubjects");
+             $(".prog").fadeOut(500);
+            GetSubjectsList();
+
+         // $('#tblSubjects').DataTable()
+            //$('#tblSubjects').DataTable({
+            //    'paging': true,
+            //     "bDestroy": true
+
+            //});
+            //$('#tblSubjects').DataTable({
+            //    'paging': false,
+            //    'lengthChange': false,
+            //    'searching': false,
+            //    'ordering': true,
+            //    'info': false,
+            //    'autoWidth': false,
+            //    "bDestroy": true
+            //});
+
+        }
+    );
+     function PopulateLevel() {
+        $.get('~/../Subjects/PopulateLevel?DepartmentID=' + $('#ddlDepartmentID').val(), {}, function (data) {
+
+            $('#ddlLevelID').empty();
+           // $('#ddlLevelID').append($("<option value='0'>--Select Country--</option>"));
+            $.each(data, function (key, value) {
+                $('#ddlLevelID').append($("<option></option>").val(value.Id).html(value.Name));
+            });
+        }, 'json');
+    }
+     $("#ddlDepartmentID").change(
+       function () {
+           PopulateLevel();
+       });
+            function setTableProp(tbl) {
+            console.log("ordering");
+
+                if ($.fn.DataTable.isDataTable(tbl)) {
+                    console.log("ordering");
+                    $(tbl).DataTable().destroy();
+                    $(tbl).empty();
+                } 
+
+          $(tbl).DataTable({
+                        'paging': true,
+                        'lengthChange': false,
+                        'searching': false,
+                        'ordering': true,
+                        'info': true,
+                        'autoWidth': false
+          });
+
+    }
+     var timer1
+    function Editddl(arg) {
+         clearTimeout(timer1);
+        timer1 = setTimeout(function validate() {
+            if(subject != null)
+            $('#ddlLevelID').val(subject[0].LevelID);
+        }, 50);
+    }
+    function SearchTimer() {
+         clearTimeout(timer1);
+        timer1 = setTimeout(function validate() {
+            GetSubjectsList();
+        }, 50);
+    }
+    function Search_PopulateLevel() {
+        setTimeout(SearchTimer, 50);
+         $.get('~/../Subjects/PopulateLevel?DepartmentID=' + $('#Search_ddlDepartmentID').val(), {}, function (data) {
+
+            $('#Search_ddlLevelID').empty();
+        $('#Search_ddlLevelID').append($("<option value='0'>--@resx.All @resx.theLevels--</option>"));
+            $.each(data, function (key, value) {
+                $('#Search_ddlLevelID').append($("<option></option>").val(value.Id).html(value.Name));
+            });
+         }, 'json');
+    }
+     $("#Search_ddlDepartmentID").change(
+       function () {
+             Search_PopulateLevel();
+             GetSubjectsList()
+         });
+     $("#Search_ddlLevelID").change(
+       function () {
+             GetSubjectsList()
+         });
+    var CurrentSubjectsList = null;
+    
+    function GetSubjectsList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Subjects/GetSubjectsList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+           data: JSON.stringify({
+                    DepartmentID:  $('#Search_ddlDepartmentID').val() ,
+                    LevelID:  $('#Search_ddlLevelID').val() ,
+                }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentSubjectsList = data;
+                    var row = "";
+                    for (var i = 0; i < CurrentSubjectsList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentSubjectsList[i].Name + "</td>" +
+                            "<td>" + CurrentSubjectsList[i].ExamDegree + "</td>" +
+                            "<td>" + CurrentSubjectsList[i].LevelName + "</td>" +
+                            "<td>" + CurrentSubjectsList[i].DepartmentName + "</td>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn btn-primary pull-right' data-toggle='modal' data-target='#modal-Subjects'  onclick='EditSubjects(" + CurrentSubjectsList[i].Id + ")'>@resx.Edit</button>" +
+                            "<button class='btn btn-danger pull-left'  onclick='Delete(" + CurrentSubjectsList[i].Id +
+                            ")'>@resx.Delete</button>" +
+                            "</td>" +
+                            "</tr>";
+                    }
+                    $("#bodySubjects").html(row);
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+                   /// setTableProp("#tblSubjects");
+
+    }
+    function SaveSubjects() {
+       // console.log(document.getElementById('#ddlLevelID').val() );
+        if (!checkValidtion_btnAddSubjects()) return;
+        if (document.getElementById('titleSubjects').innerHTML != "@resx.Add @resx.Subject") {
+            $.ajax({
+                url: "~/../Subjects/EditSubjects",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblSubjectsId').value,
+                    Name: document.getElementById('Name').value,
+                    ExamDegree: document.getElementById('ExamDegree').value,
+                    LevelID:  $('#ddlLevelID').val() ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Subjects').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "~/../Subjects/AddSubjects",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Name: document.getElementById('Name').value,
+                    ExamDegree: document.getElementById('ExamDegree').value,
+                    LevelID:  $('#ddlLevelID').val()
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Subjects').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearSubjects();
+    }
+    var subject;
+    function EditSubjects(ID) {
+        document.getElementById('titleSubjects').innerHTML = "@resx.Edit @resx.Subject";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblSubjectsId').value = ID;
+        $.ajax({
+            url: "~/../Subjects/BindSubjects",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    subject = data;
+
+                    document.getElementById('Name').value = subject[0].Name;
+                    document.getElementById('ExamDegree').value = subject[0].ExamDegree;
+                  //  $('#ddlLevelID').val(subject[0].LevelID);
+                    $('#ddlDepartmentID').val(subject[0].DepartmentID);
+
+                     var wait = setTimeout(Editddl, 50); // delay after user types
+                    $('#ddlDepartmentID').data('timer', wait);
+                     PopulateLevel();
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeleteSubjects() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Subjects/DeleteSubjects",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblSubjectsId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showSubjects() {
+        console.log("it's defined")
+        document.getElementById('titleSubjects').innerHTML = "@resx.Add @resx.Subject";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearSubjects() {
+       document.getElementById('Name').value = "";
+       document.getElementById('ExamDegree').value = "";
+    }
+    function checkValidtion_btnAddSubjects() {
+        var isVaild = true;
+         if (!$('#Name')[0].checkValidity()) {
+            document.getElementById('reName').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reName').innerHTML = "*";
+        }
+         if (!$('#ExamDegree')[0].checkValidity()) {
+            document.getElementById('reExamDegree').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reExamDegree').innerHTML = "*";
+        }
+        return isVaild;
+    }
+    function OKR() {
+        GetSubjectsList();
+        clearSubjects();
+       // top.location.href = "~/../Subjects";
+    }
+    function closeModel() {
+          clearSubjects();
+    }
+    function ConfirmDelete() {
+        DeleteSubjects();
+    }
+    function Delete(Id) {
+         document.getElementById('lblSubjectsId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+</script>

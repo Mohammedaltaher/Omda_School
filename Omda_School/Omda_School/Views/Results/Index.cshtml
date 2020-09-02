@@ -1,0 +1,431 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.theResults;
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.theResults
+    </h1>
+    
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h3 class="box-title">
+                            <button type="button" onclick="showResults()" data-toggle="modal" data-target="#modal-Results" class="btn btn-primary">@resx.Add  @resx.Result</button>
+                        </h3>
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theYear  <span style="color:red">*</span></label>
+                        @Html.DropDownList("YearID", new SelectList(ViewBag.ddlYear, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlYearID" })
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlDepartmentID" })
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theLevel  <span style="color:red">*</span></label>
+                        <select id="Search_ddlLevelID" class="form-control"></select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>@resx.Name @resx.Admin</label>
+                        <input type="text" required id="Search_Name"  onkeyup=SearchStudentByName(this) class="form-control">
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblResults" class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+
+                        <tr>
+                            <th>@resx.Name @resx.theYear</th>
+                            <th>@resx.Name @resx.theDepartment</th>
+                            <th>@resx.Name @resx.theLevel</th>
+                            <th>@resx.Type @resx.theResult</th>
+                            <th>@resx.Admin @resx.theResult</th>
+                            <th></th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="bodyResults"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model  -->
+<div class="modal fade" id="modal-Results">
+    <div class="modal-dialog">
+        <label hidden id="lblResultsId"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titleResults" class="modal-title">@resx.Add @resx.Result</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.theYear  <span style="color:red">*</span></label>
+                        @Html.DropDownList("YearID", new SelectList(ViewBag.ddlYear, "Id", "Name"), new { @class = "form-control", @id = "ddlYearID" })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "ddlDepartmentID" })
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Level  <span style="color:red">*</span></label>
+                        <select id="ddlLevelID" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Type @resx.theResult <span id="reType" style="color:red"> * </span></label>
+                        <input type="text" required id="Type" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Admin @resx.theLevel <span id="reLevelAdmin" style="color:red"> * </span></label>
+                        <input type="text" required id="LevelAdmin" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModel()" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                    <button type="button" id="btnSave" onclick="SaveResults()" class="btn btn-primary pull-left">@resx.Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+</div>
+<!-- End Model  -->
+<script>
+    $(document).ready(
+        function bind() {
+            PopulateLevel();
+           Search_PopulateLevel();
+
+           // setTableProp("#tblResults");
+            $(".prog").fadeOut(500);
+            GetResultsList();
+             
+        }
+    );
+     function PopulateLevel() {
+        $.get('~/../Results/PopulateLevel?DepartmentID=' + $('#ddlDepartmentID').val(), {}, function (data) {
+
+            $('#ddlLevelID').empty();
+           // $('#ddlLevelID').append($("<option value='0'>--Select Country--</option>"));
+            $.each(data, function (key, value) {
+                $('#ddlLevelID').append($("<option></option>").val(value.Id).html(value.Name));
+            });
+        }, 'json');
+        
+    }
+     $("#ddlDepartmentID").change(
+       function () {
+           PopulateLevel();
+       });
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+    }
+     var timer1
+    function Editddl(arg) {
+         clearTimeout(timer);
+        timer1 = setTimeout(function validate() {
+            $('#ddlLevelID').val(subject[0].LevelID);
+        }, 50);
+    }
+
+    function SearchTimer() {
+         clearTimeout(timer1);
+        timer1 = setTimeout(function validate() {
+            GetResultsList();
+        }, 50);
+    }
+    function Search_PopulateLevel() {
+           setTimeout(SearchTimer, 50);
+         $.get('/Subjects/PopulateLevel?DepartmentID=' + $('#Search_ddlDepartmentID').val(), {}, function (data) {
+
+            $('#Search_ddlLevelID').empty();
+           $('#Search_ddlLevelID').append($("<option value='0'>--@resx.All @resx.theLevels--</option>"));
+            $.each(data, function (key, value) {
+                $('#Search_ddlLevelID').append($("<option></option>").val(value.Id).html(value.Name));
+            });
+        }, 'json');
+    }
+     $("#Search_ddlDepartmentID").change(
+       function () {
+             Search_PopulateLevel();
+             GetResultsList();
+         });
+     $("#Search_ddlLevelID").change(
+       function () {
+             GetResultsList();
+         });
+        var timer
+    function SearchStudentByName(arg) {
+         clearTimeout(timer);
+        timer = setTimeout(function validate() {
+            GetResultsList();
+         //var id = arg.getAttribute('id');
+         //var value = arg.value;
+         //   console.log(id + " - " + value);
+        }, 1000);
+    }
+    var CurrentResultsList = null;
+    function GetResultsList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Results/GetResultsList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+           data: JSON.stringify({
+                    StudentName: document.getElementById('Search_Name').value,
+                    DepartmentID:  $('#Search_ddlDepartmentID').val() ,
+                    LevelID:  $('#Search_ddlLevelID').val() ,
+                    YearID: document.getElementById('Search_ddlYearID').value ,
+                }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentResultsList = data;
+                    var row = "";
+                    for (var i = 0; i < CurrentResultsList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentResultsList[i].YearName + "</td>" +
+                            "<td>" + CurrentResultsList[i].DepartmentName + "</td>" +
+                            "<td>" + CurrentResultsList[i].LevelName + "</td>" +
+                            "<td>" + CurrentResultsList[i].Type + "</td>" +
+                            "<td>" + CurrentResultsList[i].LevelAdmin + "</td>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn'> <a href='\Degrees?id=" + CurrentResultsList[i].Id + "'> @resx.Deteles </a></button>" +
+                            "<button class='btn'> <a href='\ResultInfo?id=" + CurrentResultsList[i].Id + "'> @resx.show </a></button>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn btn-primary pull-right' data-toggle='modal' data-target='#modal-Results'  onclick='EditResults(" + CurrentResultsList[i].Id + ")'>@resx.Edit</button>" +
+                            "<button class='btn btn-danger pull-left'  onclick='Delete(" + CurrentResultsList[i].Id +
+                            ")'>@resx.Delete</button>" +
+                            "</td>" +
+                            "</tr>";
+                    }
+                    $("#bodyResults").html(row);
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+    function SaveResults() {
+       // console.log(document.getElementById('#ddlLevelID').val() );
+        if (!checkValidtion_btnAddResults()) return;
+        if (document.getElementById('titleResults').innerHTML != "@resx.Add @resx.Result") {
+            $.ajax({
+                url: "~/../Results/EditResults",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblResultsId').value,
+                    YearID: document.getElementById('ddlYearID').value ,
+                    Type: document.getElementById('Type').value,
+                    LevelAdmin: document.getElementById('LevelAdmin').value,
+                    LevelID:  $('#ddlLevelID').val() ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Results').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "~/../Results/AddResults",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Type: document.getElementById('Type').value,
+                    YearID: document.getElementById('ddlYearID').value ,
+                    LevelAdmin: document.getElementById('LevelAdmin').value ,
+                     LevelID:  $('#ddlLevelID').val()
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Results').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearResults();
+    }
+    var subject;
+    function EditResults(ID) {
+        document.getElementById('titleResults').innerHTML = "@resx.Edit @resx.Result";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblResultsId').value = ID;
+        $.ajax({
+            url: "~/../Results/BindResults",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                  document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    subject = data;
+
+                    document.getElementById('Type').value = subject[0].Type;
+                    document.getElementById('LevelAdmin').value = subject[0].LevelAdmin;
+                    document.getElementById('ddlYearID').value = subject[0].YearID;
+
+                    $('#ddlDepartmentID').val(subject[0].DepartmentID);
+                    var wait = setTimeout(Editddl, 50); // delay after user types
+                    $('#ddlDepartmentID').data('timer', wait);
+                     PopulateLevel();
+                   // $('#ddlLevelID').val(subject[0].LevelID);
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeleteResults() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Results/DeleteResults",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblResultsId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showResults() {
+        console.log("it's defined")
+        document.getElementById('titleResults').innerHTML = "@resx.Add @resx.Result";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearResults() {
+        //location.reload();
+      // document.getElementById('Name').value = "";
+     //$('#ddlLevelID').val()  = "";
+    }
+    function checkValidtion_btnAddResults() {
+        var isVaild = true;
+         if (!$('#Type')[0].checkValidity()) {
+            document.getElementById('reType').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reType').innerHTML = "*";
+        }
+
+        return isVaild;
+    }
+    function OKR() {
+        GetResultsList();
+        clearResults();
+       // top.location.href = "~/../Results";
+    }
+    function closeModel() {
+          clearResults();
+    }
+    function ConfirmDelete() {
+        DeleteResults();
+    }
+
+    function Delete(Id) {
+         document.getElementById('lblResultsId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+</script>

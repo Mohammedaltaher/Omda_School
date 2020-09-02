@@ -1,0 +1,485 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.theStudents;
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.theStudents
+    </h1>
+  
+
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h3 class="box-title">
+                            <button type="button" onclick="showStudents()" data-toggle="modal" data-target="#modal-Students" class="btn btn-primary">@resx.Add  @resx.Student</button>
+                        </h3>
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theYear  <span style="color:red">*</span></label>
+                        @Html.DropDownList("YearID", new SelectList(ViewBag.ddlYear, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlYearID" })
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlDepartmentID" })
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theLevel  <span style="color:red">*</span></label>
+                        <select id="Search_ddlLevelID" class="form-control"></select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>@resx.Name @resx.theStudent</label>
+                        <input type="text" required id="Search_Name"  onkeyup=SearchStudentByName(this) class="form-control">
+                    </div>
+
+                </div>
+               
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblStudents" class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+
+                        <tr>
+                            <th>@resx.Name @resx.theStudent</th>
+                            <th>@resx.theDepartment</th>
+                            <th>@resx.Name @resx.theLevel</th>
+                            <th>@resx.Name @resx.theYear</th>
+                            <th>@resx.address</th>
+                            <th>@resx.Phone</th>
+                            <th>@resx.BirthDay</th>
+                            <th>@resx.Fees</th>
+                            @*<th>@resx.PaidFees</th>*@
+
+
+                            <th></th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="bodyStudents"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model Students -->
+<div class="modal fade" id="modal-Students">
+    <div class="modal-dialog">
+        <label hidden id="lblStudentsId"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titleStudents" class="modal-title">@resx.Add @resx.Student</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Name <span id="reName" style="color:red"> * </span></label>
+                        <input type="text" required id="Name" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>@resx.address <span id="readdress" style="color:red"> * </span></label>
+                        <input type="text" required id="address" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>@resx.Phone <span id="rePhone" style="color:red"> * </span></label>
+                        <input type="text" required id="Phone" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>@resx.BirthDay <span id="reBirthDay" style="color:red"> * </span></label>
+                        <input type="date" required id="BirthDay" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>@resx.Fees <span id="reFees" style="color:red"> * </span></label>
+                        <input type="text" required id="Fees" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label>@resx.PaidFees <span id="rePaidFees" style="color:red"> * </span></label>
+                        <input type="text"   required id="PaidFees" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "ddlDepartmentID" })
+                    </div>
+                    <div class="col-md-4">
+                        <label>@resx.Level  <span style="color:red">*</span></label>
+                        <select id="ddlLevelID" class="form-control"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>@resx.theYear  <span style="color:red">*</span></label>
+                        @Html.DropDownList("YearID", new SelectList(ViewBag.ddlYear, "Id", "Name"), new { @class = "form-control", @id = "ddlYearID" })
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModel()" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                    <button type="button" id="btnSave" onclick="SaveStudents()" class="btn btn-primary pull-left">@resx.Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+<!-- End Model  -->
+
+<script>
+    $(document).ready(
+        function bind() {
+            PopulateLevel();
+           Search_PopulateLevel();
+       document.getElementById('PaidFees').value = "0";
+
+          //  setTableProp("#tblStudents");
+            $(".prog").fadeOut(500);
+          GetStudentsList();
+        }
+    );
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+    }
+      var timer1
+    function Editddl(arg) {
+         clearTimeout(timer);
+        timer1 = setTimeout(function validate() {
+            $('#ddlLevelID').val(level[0].LevelID);
+        }, 50);
+    }
+    function PopulateLevel() {
+        $.get('~/../Subjects/PopulateLevel?DepartmentID=' + $('#ddlDepartmentID').val(), {}, function (data) {
+
+            $('#ddlLevelID').empty();
+           // $('#ddlLevelID').append($("<option value='0'>--Select Country--</option>"));
+            $.each(data, function (key, value) {
+                $('#ddlLevelID').append($("<option></option>").val(value.Id).html(value.Name));
+            });
+        }, 'json');
+        
+    }
+    function SearchTimer() {
+         clearTimeout(timer1);
+        timer1 = setTimeout(function validate() {
+            GetStudentsList();
+        }, 50);
+    }
+    function Search_PopulateLevel() {
+         setTimeout(SearchTimer, 50);
+         $.get('~/../Subjects/PopulateLevel?DepartmentID=' + $('#Search_ddlDepartmentID').val(), {}, function (data) {
+
+            $('#Search_ddlLevelID').empty();
+           $('#Search_ddlLevelID').append($("<option value='0'>--@resx.All @resx.theLevels--</option>"));
+            $.each(data, function (key, value) {
+                $('#Search_ddlLevelID').append($("<option></option>").val(value.Id).html(value.Name));
+            });
+        }, 'json');
+    }
+     $("#ddlDepartmentID").change(
+       function () {
+           PopulateLevel();
+         });
+     $("#Search_ddlDepartmentID").change(
+       function () {
+             Search_PopulateLevel();
+             GetStudentsList()
+         });
+     $("#Search_ddlLevelID").change(
+       function () {
+             GetStudentsList()
+         });
+        var timer
+    function SearchStudentByName(arg) {
+         clearTimeout(timer);
+        timer = setTimeout(function validate() {
+            GetStudentsList();
+         //var id = arg.getAttribute('id');
+         //var value = arg.value;
+         //   console.log(id + " - " + value);
+        }, 1000);
+    }
+    var CurrentStudentsList = null;
+    function GetStudentsList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Students/GetStudentsList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+                    StudentName: document.getElementById('Search_Name').value,
+                    DepartmentID:  $('#Search_ddlDepartmentID').val() ,
+                    LevelID:  $('#Search_ddlLevelID').val() ,
+                    YearID: document.getElementById('Search_ddlYearID').value ,
+                }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentStudentsList = data;
+                    var row = "";
+                    for (var i = 0; i < CurrentStudentsList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentStudentsList[i].Name + "</td>" +
+                            "<td>" + CurrentStudentsList[i].DepartmentName + "</td>" +
+                            "<td>" + CurrentStudentsList[i].LevelName + "</td>" +
+                            "<td>" + CurrentStudentsList[i].YearName + "</td>" +
+                            "<td>" + CurrentStudentsList[i].address + "</td>" +
+                            "<td>" + CurrentStudentsList[i].Phone + "</td>" +
+                            "<td>" + CurrentStudentsList[i].BirthDay + "</td>" +
+                            "<td>" + CurrentStudentsList[i].Fees + "</td>" +
+                            //"<td>" + CurrentStudentsList[i].PaidFees + "</td>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn btn-primary pull-right' data-toggle='modal' data-target='#modal-Students'  onclick='EditStudents(" + CurrentStudentsList[i].Id + ")'>@resx.Edit</button>" +
+                            @*"<button class='btn btn-danger pull-left' data-toggle='modal' data-target='#modal-StudentsPayment'   onclick='GetPaymentsList(" + CurrentStudentsList[i].Id  +
+                            ")'>@resx.thePayments</button>" +*@
+                            "<button class='btn btn-danger pull-left'  onclick='Delete(" + CurrentStudentsList[i].Id +
+                            ")'>@resx.Delete</button>" +
+                            "</td>" +
+                            "</tr>";
+                    }
+                    $("#bodyStudents").html(row);
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+    function SaveStudents() {
+        if (!checkValidtion_btnAddStudents()) return;
+        if (document.getElementById('titleStudents').innerHTML != "@resx.Add @resx.Student") {
+            $.ajax({
+                url: "~/../Students/EditStudents",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblStudentsId').value,
+                    Name: document.getElementById('Name').value,
+                    address: document.getElementById('address').value,
+                    Phone: document.getElementById('Phone').value,
+                    BirthDay: document.getElementById('BirthDay').value,
+                    Fees: document.getElementById('Fees').value,
+                    PaidFees: document.getElementById('PaidFees').value,
+                    LevelID:  $('#ddlLevelID').val() ,
+                    YearID: document.getElementById('ddlYearID').value ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Students').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "~/../Students/AddStudents",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Name: document.getElementById('Name').value,
+                    address: document.getElementById('address').value,
+                    Phone: document.getElementById('Phone').value,
+                    BirthDay: document.getElementById('BirthDay').value,
+                    Fees: document.getElementById('Fees').value,
+                    PaidFees: document.getElementById('PaidFees').value,
+                    LevelID:  $('#ddlLevelID').val() ,
+                    YearID: document.getElementById('ddlYearID').value
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Students').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearStudents();
+    }
+    var level;
+    function EditStudents(ID) {
+        document.getElementById('titleStudents').innerHTML = "@resx.Edit @resx.Student";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblStudentsId').value = ID;
+        $.ajax({
+            url: "~/../Students/BindStudents",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                  document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    level = data;
+                    document.getElementById('Name').value = level[0].Name;
+                    document.getElementById('address').value = level[0].address;
+                    document.getElementById('Phone').value = level[0].Phone;
+                    document.getElementById('BirthDay').value = level[0].BirthDay;
+                    document.getElementById('Fees').value = level[0].Fees;
+                    document.getElementById('PaidFees').value = level[0].PaidFees;
+                    document.getElementById('ddlYearID').value = level[0].YearID;
+                    $('#ddlDepartmentID').val(level[0].DeptId) ;
+
+                    var wait = setTimeout(Editddl, 50); // delay after user types
+                    $('#ddlDepartmentID').data('timer', wait);
+                     PopulateLevel();
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeleteStudents() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Students/DeleteStudents",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblStudentsId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showStudents() {
+        console.log("it's defined")
+        document.getElementById('titleStudents').innerHTML = "@resx.Add @resx.Student";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearStudents() {
+        //location.reload();
+       document.getElementById('Name').value = "";
+       document.getElementById('address').value = "";
+       document.getElementById('Phone').value = "";
+       document.getElementById('BirthDay').value = "";
+       document.getElementById('Fees').value = "";
+       document.getElementById('PaidFees').value = "0";
+       $('#ddlLevelID').val(0);
+       document.getElementById('ddlYearID').value = "";
+    }
+    function checkValidtion_btnAddStudents() {
+        var isVaild = true;
+        if (!$('#Name')[0].checkValidity()) {
+            document.getElementById('reName').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reName').innerHTML = "*";
+        }
+        if (!$('#Fees')[0].checkValidity()) {
+            document.getElementById('reFees').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reFees').innerHTML = "*";
+        }
+         if (!$('#PaidFees')[0].checkValidity()) {
+            document.getElementById('rePaidFees').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('rePaidFees').innerHTML = "*";
+        }
+        return isVaild;
+    }
+    function OKR() {
+        GetStudentsList();
+        clearStudents();
+       // top.location.href = "~/Students";
+    }
+    function closeModel() {
+          clearStudents();
+    }
+    function ConfirmDelete() {
+        if (document.getElementById('lblStudentsId').value != null) {
+            DeleteStudents();
+        } else {
+        DeleteStudents();
+        }
+    }
+
+    function Delete(Id) {
+         document.getElementById('lblStudentsId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+    
+</script>

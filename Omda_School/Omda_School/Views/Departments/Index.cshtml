@@ -1,0 +1,295 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.Departments;
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.Departments
+    </h1>
+   
+
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+                <h3 class="box-title">
+                    <button type="button" onclick="showDepartments()" data-toggle="modal" data-target="#modal-Departments" class="btn btn-primary">@resx.Add  @resx.Department</button>
+                </h3>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblDepartments" class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+                        <tr>
+                            <th>@resx.Name @resx.theDepartment</th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="bodyDepartments"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model  -->
+<div class="modal fade" id="modal-Departments">
+    <div class="modal-dialog">
+        <label hidden id="lblDepartmentsId"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titleDepartments" class="modal-title">@resx.Add @resx.Departments</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Name <span id="reName" style="color:red"> * </span></label>
+                        <input type="text" required id="Name" class="form-control">
+                    </div>
+
+
+                    <div class="row">
+
+                        @*<div class="col-md-12">
+                                <label>@resx.Role  <span style="color:red">*</span></label>
+
+                            </div>*@
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                        <button type="button" id="btnSave" onclick="SaveDepartments()" class="btn btn-primary pull-left">@resx.Save</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+</div>
+<!-- End Model  -->
+<script>
+    $(document).ready(
+        function bind() {
+             console.log("it's defined")
+           // setTableProp("#tblDepartments");
+            $(".prog").fadeOut(500);
+          GetDepartmentsList();
+        }
+    );
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+    }
+    var CurrentDepartmentsList = null;
+    function GetDepartmentsList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Departments/GetDepartmentsList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentDepartmentsList = data;
+                    var row = "";
+                    for (var i = 0; i < CurrentDepartmentsList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentDepartmentsList[i].Name + "</td>" +
+                            //"<td>" + CurrentDepartmentsList[i].DepartmentsRoleId + "</td>" +
+                            "<td style='width:150px;'>" +
+                            "<button class='btn btn-primary pull-right' data-toggle='modal' data-target='#modal-Departments'  onclick='EditDepartments(" + CurrentDepartmentsList[i].Id + ")'>@resx.Edit</button>" +
+                            "<button class='btn btn-danger pull-left'  onclick='Delete(" + CurrentDepartmentsList[i].Id +
+                            ")'>@resx.Delete</button>" +
+                            "</td>" +
+                            "</tr>";
+                    }
+                    $("#bodyDepartments").html(row);
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+    function SaveDepartments() {
+        if (!checkValidtion_btnAddDepartments()) return;
+        if (document.getElementById('titleDepartments').innerHTML != "@resx.Add @resx.Departments") {
+            $.ajax({
+                url: "~/../Departments/EditDepartments",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblDepartmentsId').value,
+                    Name: document.getElementById('Name').value ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Departments').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "~/../Departments/AddDepartments",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Name: document.getElementById('Name').value
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Departments').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearDepartments();
+    }
+    var department;
+    function EditDepartments(ID) {
+        document.getElementById('titleDepartments').innerHTML = "@resx.Edit @resx.Departments";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblDepartmentsId').value = ID;
+        $.ajax({
+            url: "~/../Departments/BindDepartments",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                  document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    department = data;
+                    document.getElementById('Name').value = department[0].Name;
+
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeleteDepartments() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Departments/DeleteDepartments",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblDepartmentsId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showDepartments() {
+        console.log("it's defined")
+        document.getElementById('titleDepartments').innerHTML = "@resx.Add @resx.Departments";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearDepartments() {
+        //location.reload();
+       document.getElementById('Name').value = "";
+    }
+    function checkValidtion_btnAddDepartments() {
+        var isVaild = true;
+        if (!$('#Name')[0].checkValidity()) {
+            document.getElementById('reName').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reName').innerHTML = "*";
+        }
+
+        return isVaild;
+    }
+    function OKR() {
+        GetDepartmentsList();
+        clearDepartments();
+       // top.location.href = "~/../Departments";
+    }
+    function ConfirmDelete() {
+        DeleteDepartments();
+    }
+    function Delete(Id) {
+         document.getElementById('lblDepartmentsId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+</script>

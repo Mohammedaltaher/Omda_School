@@ -1,0 +1,379 @@
+﻿@using resx = Omda_School.Resources.AR
+@{
+    ViewBag.Title = resx.theDegrees;
+    var ResultID = ViewBag.ResultID;
+}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        @resx.Manage @resx.theDegrees
+    </h1>
+   
+</section>
+<!-- Main content -->
+<!-- Table  -->
+<section class="content">
+    <div class="row">
+        <div class="box center-block">
+            <div class="box-header">
+              
+                <div class="row">
+                    @*<div class="col-md-3">
+              <h3 class="box-title">
+                <button type="button" onclick="showDegrees()" data-toggle="modal" data-target="#modal-Degrees" class="btn btn-primary">@resx.Add  @resx.Degree</button>
+            </h3>
+        </div>*@
+                    <div class="col-md-2">
+                        <label>@resx.theYear  <span style="color:red">*</span></label>
+                        @Html.DropDownList("YearID", new SelectList(ViewBag.ddlYear, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlYearID" , @disabled = "disabled"  })
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlDepartmentID" , @disabled = "disabled"  })
+                    </div>
+                    <div class="col-md-2">
+                        <label>@resx.theLevel  <span style="color:red">*</span></label>
+                        @Html.DropDownList("LevelID", new SelectList(ViewBag.ddlLevel, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlLevelID" , @disabled = "disabled"  })
+                    </div>
+                    <div class="col-md-3">
+                        <label>@resx.theSubject <span style="color:red">*</span></label>
+                        @Html.DropDownList("SubjectID", new SelectList(ViewBag.ddlSubject, "Id", "Name"), new { @class = "form-control", @id = "Search_ddlSubjectID" })
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>@resx.Name @resx.theStudent</label>
+                        <input type="text" required id="Search_Name" onkeyup=SearchStudentByName(this) class="form-control">
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="box-body col-md-10">
+                <table id="tblDegrees" class="table table-bordered table-hover table-striped dataTabler">
+                    <thead style="background-color: #3c8dbc">
+
+                        <tr>
+                            <th>@resx.Name @resx.theStudent</th>
+                            <th>@resx.Degree @resx.theStudent </th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyDegrees"></tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+<!-- End Table  -->
+<!-- Model  -->
+<div class="modal fade" id="modal-Degrees">
+    <div class="modal-dialog">
+        <label hidden id="lblDegreesId"></label>
+        <div class="modal-content">
+            <div class="modal-header bg-aqua">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="titleDegrees" class="modal-title">@resx.Add @resx.Degrees</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.Name <span id="reName" style="color:red"> * </span></label>
+                        <input type="text" required id="Name" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>@resx.theDepartment  <span style="color:red">*</span></label>
+                        @Html.DropDownList("DepartmentID", new SelectList(ViewBag.ddlDepartment, "Id", "Name"), new { @class = "form-control", @id = "ddlDepartmentID" })
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModel()" class="btn btn-default pull-right" data-dismiss="modal">@resx.Close</button>
+                    <button type="button" id="btnSave" onclick="SaveDegrees()" class="btn btn-primary pull-left">@resx.Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+</div>
+<!-- End Model  -->
+<script>
+    $(document).ready(
+        function bind() {
+           // setTableProp("#tblDegrees");
+            $(".prog").fadeOut(500);
+            GetDegreesList();
+
+        } );
+    var timer
+    function addStudentDegree(arg) {
+         clearTimeout(timer);
+        timer = setTimeout(function validate() {
+         var id = arg.getAttribute('id');
+            var value = arg.value;
+             $.ajax({
+                url: "~/../Degrees/EditDegrees",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: id,
+                    StudentDegree:value,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+            });
+            console.log(id + " - " + value);
+
+        }, 1000);
+    }
+    function setTableProp(tbl) {
+        $(tbl).DataTable({
+            'paging': true,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': false,
+            'info': true,
+            'autoWidth': false
+        });
+
+
+ }
+     $("#Search_ddlSubjectID").change(
+       function () {
+             GetDegreesList()
+         });
+        var timer
+    function SearchStudentByName(arg) {
+         clearTimeout(timer);
+        timer = setTimeout(function validate() {
+            GetDegreesList();
+         //var id = arg.getAttribute('id');
+         //var value = arg.value;
+         //   console.log(id + " - " + value);
+        }, 1000);
+    }
+    var CurrentDegreesList = null;
+    function GetDegreesList() {
+       $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Degrees/GetDegreesList",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+                    StudentName: document.getElementById('Search_Name').value,
+                    DepartmentID:  $('#Search_ddlDepartmentID').val() ,
+                    LevelID:  $('#Search_ddlSubjectID').val() ,
+                    YearID: @ResultID ,
+                }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Error" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong";
+                 //   $("#modal-danger").modal();
+                } else {
+                    CurrentDegreesList = data;
+                    var row = "";
+                   // document.getElementById('Search_ddlYearID').value = CurrentDegreesList[0].YearID;
+                    document.getElementById('Search_ddlDepartmentID').value = CurrentDegreesList[0].DepartmentID;
+                   // document.getElementById('Search_ddlLevelID').value = CurrentDegreesList[0].LevelID;
+                    for (var i = 0; i < CurrentDegreesList.length; i++) {
+                        row += "<tr>" +
+                            "<td>" + CurrentDegreesList[i].StudentName + "</td>" +
+                            "<td>" +
+                            "<input type='text' onkeyup='addStudentDegree(this)'  id='" + CurrentDegreesList[i].Id + "' value='" + CurrentDegreesList[i].StudentDegree + "' class='form-control'>" +
+                            "</td>" +
+                            "</tr>";
+
+                    }
+                    $("#bodyDegrees").html(row);
+                    $("#tblDegrees3 td").on("keyup", function()
+                     {
+                        clearTimeout($.data(this, 'timer'));
+                        var This_id = $(this).attr("id").val();
+                        var This_value = $(this).attr("value");
+                        console.log(This_id + " " + This_value);
+                   var wait = setTimeout(addStudentDegree, 500); // delay after user types
+                     $(this).data('timer', wait);
+                       });
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                //$("#modal-danger").modal();
+            }
+        });
+    }
+
+    function SaveDegrees() {
+        if (!checkValidtion_btnAddDegrees()) return;
+        if (document.getElementById('titleDegrees').innerHTML != "@resx.Add @resx.Degrees") {
+            $.ajax({
+                url: "~/../Degrees/EditDegrees",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Id: document.getElementById('lblDegreesId').value,
+                    Name: document.getElementById('Name').value,
+                    DepartmentID: document.getElementById('ddlDepartmentID').value ,
+                    IsDeleted : "N"
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Degrees').modal('hide');
+                    document.getElementById('titleSuccess').innerHTML = "@resx.Update" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgUpdate";
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                       document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Update" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnUpdate" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        else {
+            $.ajax({
+                url: "~/../Degrees/AddDegrees",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Name: document.getElementById('Name').value ,
+                     DepartmentID: document.getElementById('ddlDepartmentID').value
+                }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 1) {
+                        $('#modal-Degrees').modal('hide');
+                        document.getElementById('titleSuccess').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgSuccess').innerHTML = "@resx.MsgSave" ;
+                        $("#modal-success").modal();
+                    } else {
+                        document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                        document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                        $("#modal-danger").modal();
+                    }
+                },
+                error: function (result) {
+                    document.getElementById('titleDanger').innerHTML =  "@resx.Save" ;
+                    document.getElementById('MsgDanger').innerHTML = "@resx.MsgUnSave" ;
+                    $("#modal-danger").modal();
+                }
+            });
+        }
+        clearDegrees();
+    }
+    var level;
+    function EditDegrees(ID) {
+        document.getElementById('titleDegrees').innerHTML = "@resx.Edit @resx.Degrees";
+        document.getElementById('btnSave').innerHTML = "@resx.Update";
+        document.getElementById('lblDegreesId').value = ID;
+        $.ajax({
+            url: "~/../Degrees/BindDegrees",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: ID }),
+            dataType: "json",
+            success: function (data) {
+                $(".prog").fadeOut(500);
+                if (data.code == 0) {
+                    document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                  document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                    $("#modal-danger").modal();
+                } else {
+
+                    level = data;
+                    document.getElementById('Name').value = level[0].Name;
+                    document.getElementById('ddlDepartmentID').value = level[0].DepartmentID;
+
+                }
+            },
+            error: function () {
+                $(".prog").fadeOut(500);
+                document.getElementById('titleDanger').innerHTML = "@resx.Error" ;
+                document.getElementById('MsgDanger').innerHTML = "@resx.MsgSamethingWrong" ;
+                $("#modal-danger").modal();
+            }
+        });
+    }
+    function DeleteDegrees() {
+        $(".prog").fadeIn(500);
+        $.ajax({
+            url: "~/../Degrees/DeleteDegrees",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ id: document.getElementById('lblDegreesId').value }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $(".prog").fadeOut(500);
+                    document.getElementById('titleSuccess').innerHTML ="@resx.Delete" ;
+                    document.getElementById('MsgSuccess').innerHTML = "@resx.MsgDelete" ;
+                    $("#modal-success").modal();
+                } else {
+                   document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+              document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+                }
+            },
+            error: function (result) {
+                document.getElementById('titleDanger').innerHTML ="@resx.Delete" ;
+               document.getElementById('MsgDanger').innerHTML =" @resx.MsgUnDelete" ;
+                $("#modal-danger").modal();
+            }
+        });
+
+    }
+    function showDegrees() {
+        console.log("it's defined")
+        document.getElementById('titleDegrees').innerHTML = "@resx.Add @resx.Degrees";
+        document.getElementById('btnSave').innerHTML = "@resx.Save";
+    }
+    function clearDegrees() {
+        //location.reload();
+       document.getElementById('Name').value = "";
+       document.getElementById('ddlDepartmentID').value = "";
+    }
+    function checkValidtion_btnAddDegrees() {
+        var isVaild = true;
+        if (!$('#Name')[0].checkValidity()) {
+            document.getElementById('reName').innerHTML = "* @resx.MsgRequire";
+            isVaild = false;
+        } else {
+            document.getElementById('reName').innerHTML = "*";
+        }
+
+        return isVaild;
+    }
+    function OKR() {
+        GetDegreesList();
+        clearDegrees();
+       // top.location.href = "~/../Degrees";
+    }
+    function closeModel() {
+          clearDegrees();
+    }
+    function ConfirmDelete() {
+        DeleteDegrees();
+    }
+
+    function Delete(Id) {
+         document.getElementById('lblDegreesId').value = Id;
+          document.getElementById('titleWarning').innerHTML ="@resx.Delete" ;
+        document.getElementById('MsgWarning').innerHTML = "@resx.MsgWarningDelete" ;
+        $("#modal-warning").modal();
+    }
+</script>
